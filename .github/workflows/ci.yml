@@ -1,4 +1,4 @@
-name: CI - Build & Verify Assets
+name: CI – Build & Verify Assets
 
 on:
   pull_request:
@@ -26,15 +26,20 @@ jobs:
       - name: Install npm deps
         run: npm ci
 
+      # --- UTWORZENIE KATALOGU (FIX na błąd z ls) ---
+      - name: Ensure dist directory exists
+        run: mkdir -p wwwroot/dist
+
       - name: Build frontend (Sass/TS + minify)
         run: npm run build
 
-      # --- DOWÓD: pokaż rozmiary plików w logach (widać minifikację) ---
+      # --- DOWÓD: w logach widać pliki i ich rozmiary ---
       - name: Proof - list dist + file sizes
         run: |
+          echo "=== wwwroot/dist content ==="
           ls -la wwwroot/dist
-          echo "---- sizes ----"
-          wc -c wwwroot/dist/* || true
+          echo "=== file sizes ==="
+          wc -c wwwroot/dist/* || echo "No files yet"
 
       - name: Build .NET
         run: dotnet build -c Release
