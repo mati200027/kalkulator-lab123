@@ -1,0 +1,49 @@
+name: CI - Build & Verify Assets
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Build frontend (Sass/TS + minify)
+        run: npm run build
+
+      # --- DOWÓD: pokaż rozmiary plików w logach (widać minifikację) ---
+      - name: Proof - list dist + file sizes
+        run: |
+          ls -la wwwroot/dist
+          echo "---- sizes ----"
+          wc -c wwwroot/dist/* || true
+
+      - name: Build .NET
+        run: dotnet build -c Release
+
+      - name: Publish artifact (dist + app)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            wwwroot/dist
+            bin
+            obj
